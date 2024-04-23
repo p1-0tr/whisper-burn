@@ -1,5 +1,5 @@
 use burn::tensor::{
-    activation::relu, backend::Backend, BasicOps, Bool, Element, Float, Int, Numeric, Tensor,
+    activation::relu, backend::Backend, BasicOps, Element, Numeric, Tensor,
     TensorKind,
 };
 
@@ -43,6 +43,6 @@ where
     <K as BasicOps<B>>::Elem: Element,
 {
     let len = x.dims()[dim];
-    let indices = -Tensor::arange_device(0..len, &x.device()) + (len - 1) as i64;
+    let indices = -Tensor::arange(0..len as i64, &x.device()) + (len - 1) as i64;
     x.select(dim, indices)
 }

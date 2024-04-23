@@ -1,18 +1,14 @@
-use std::collections::HashMap;
-use std::iter;
-
-use whisper::helper::*;
 use whisper::model::*;
-use whisper::{token, token::Language};
+use whisper::{token::Language};
 use whisper::transcribe::waveform_to_text;
 
 use strum::IntoEnumIterator;
 
 cfg_if::cfg_if! {
     if #[cfg(feature = "wgpu-backend")] {
-        use burn_wgpu::{WgpuBackend, WgpuDevice, AutoGraphicsApi};
+        use burn_wgpu::{Wgpu, WgpuDevice, AutoGraphicsApi};
     } else if #[cfg(feature = "torch-backend")] {
-        use burn_tch::{TchBackend, TchDevice};
+        use burn_tch::{LibTorch, LibTorchDevice};
     }
 }
 
@@ -63,10 +59,11 @@ use burn::record::{DefaultRecorder, Recorder, RecorderError};
 fn load_whisper_model_file<B: Backend>(
     config: &WhisperConfig,
     filename: &str,
+    device: &B::Device,
 ) -> Result<Whisper<B>, RecorderError> {
-    DefaultRecorder::new()
-        .load(filename.into())
-        .map(|record| config.init().load_record(record))
+    let model = DefaultRecorder::new()
+        .load(filename.into(), device);
+    model.map(|record| config.init(device).load_record(record))
 }
 
 use std::{env, fs, process};
@@ -74,11 +71,11 @@ use std::{env, fs, process};
 fn main() {
     cfg_if::cfg_if! {
         if #[cfg(feature = "wgpu-backend")] {
-            type Backend = WgpuBackend<AutoGraphicsApi, f32, i32>;
+            type Backend = Wgpu<AutoGraphicsApi, f32, i32>;
             let device = WgpuDevice::BestAvailable;
         } else if #[cfg(feature = "torch-backend")] {
-            type Backend = TchBackend<f32>;
-            let device = TchDevice::Cuda(0);
+            type Backend = LibTorch<f32>;
+            let device = LibTorchDevice::Cuda(0);
         }
     }
 
@@ -132,7 +129,7 @@ fn main() {
     };
 
     println!("Loading model...");
-    let whisper: Whisper<Backend> = match load_whisper_model_file(&whisper_config, model_name) {
+    let whisper: Whisper<Backend> = match load_whisper_model_file(&whisper_config, model_name, &device) {
         Ok(whisper_model) => whisper_model,
         Err(e) => {
             eprintln!("Failed to load whisper model file: {}", e);

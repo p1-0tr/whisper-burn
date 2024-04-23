@@ -9,7 +9,7 @@ use burn::{
     },
 };
 
-use burn_tch::{TchBackend, TchDevice};
+use burn_tch::{LibTorch, LibTorchDevice};
 
 use burn::config::Config;
 use burn::record::{self, DefaultRecorder, Recorder};
@@ -29,11 +29,11 @@ fn main() {
         }
     };
 
-    type Backend = TchBackend<f32>;
-    let device = TchDevice::Cpu;
+    type Backend = LibTorch<f32>;
+    let device = LibTorchDevice::Cpu;
 
     let (whisper, whisper_config): (Whisper<Backend>, WhisperConfig) =
-        match load_whisper(&model_name) {
+        match load_whisper(&model_name, &device) {
             Ok(model) => model,
             Err(e) => {
                 eprintln!("Error loading model {}: {}", model_name, e);

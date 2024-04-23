@@ -128,8 +128,7 @@ fn waveform_to_mel_tensor<B: Backend>(
 
         let slice = &waveform[start..end];
 
-        let waveform = Tensor::from_floats(tensor::Data::new(slice.to_vec(), [slice.len()].into()))
-            .to_device(&device);
+        let waveform = Tensor::from_floats(tensor::Data::new(slice.to_vec(), [slice.len()].into()), &device);
 
         let mels = prep_audio(waveform.unsqueeze(), sample_rate as f64);
 
@@ -141,14 +140,14 @@ use std::f32;
 
 #[derive(Clone)]
 struct BeamSearchToken {
-    token: usize, 
-    log_prob: f64, 
-}                             
+    token: usize,
+    log_prob: f64,
+}
 
 fn mels_to_text<B: Backend>(
     whisper: &Whisper<B>,
     bpe: &Gpt2Tokenizer,
-    lang: Language, 
+    lang: Language,
     mels: Tensor<B, 3>,
     prev_nonspecial_tokens: &[usize],
     padding: usize,
@@ -171,7 +170,7 @@ fn mels_to_text<B: Backend>(
     let mels = Tensor::cat(
         vec![
             mels.slice([0..1, 0..n_mel, 0..(n_ctx).min(n_ctx_max_encoder - padding)]),
-            Tensor::zeros_device([1, n_mel, padding], &device),
+            Tensor::zeros([1, n_mel, padding], &device),
         ],
         2,
     );
@@ -203,20 +202,20 @@ fn mels_to_text<B: Backend>(
     initial_tokens.extend([start_token, lang_token, transcription_token, notimestamp]);
 
     let initial_tokens = initial_tokens.into_iter().map(|tok| BeamSearchToken {
-        token: tok, 
-        log_prob: 0.0, 
+        token: tok,
+        log_prob: 0.0,
     }).collect();
 
     /*let initial_tokens: Vec<_> = [start_token, lang_token, transcription_token, notimestamp].into_iter().map(|tok| BeamSearchToken {
-        token: tok, 
-        logit: 0.0, 
+        token: tok,
+        logit: 0.0,
     }).collect();*/
 
     type BeamNode = beam::BeamNode<BeamSearchToken>;
 
     let initial_tokens = BeamNode {
-        seq: initial_tokens, 
-        log_prob: 0.0, 
+        seq: initial_tokens,
+        log_prob: 0.0,
     };
 
     let encoder_output = whisper.forward_encoder(mels);
@@ -247,8 +246,7 @@ fn mels_to_text<B: Backend>(
     let special_tokens_maskout = Tensor::from_data(Data::new(
         special_tokens_maskout,
         [vocab_size].into(),
-    ).convert())
-    .to_device(&device);
+    ).convert(), &device);
 
     let beamsearch_next = |beams: &[BeamNode]| {
         // convert tokens into tensor
@@ -264,8 +262,7 @@ fn mels_to_text<B: Backend>(
         let token_tensor = Tensor::from_ints(Data::from_usize(Data::new(
             flattened_tokens,
             [beams.len(), max_seq_len].into(),
-        )))
-        .to_device(&device);
+        )), &device);
 
         let logits = whisper.forward_decoder(token_tensor, encoder_output.clone().repeat(0, beams.len()));
         let logits = if max_seq_len > 5 {
@@ -293,10 +290,10 @@ fn mels_to_text<B: Backend>(
                     .map(|(token_id, log_prob)| {
                         (
                             BeamSearchToken {
-                                token: token_id, 
-                                log_prob: log_prob, 
-                            }, 
-                            beam.log_prob + log_prob,  
+                                token: token_id,
+                                log_prob: log_prob,
+                            },
+                            beam.log_prob + log_prob,
                         )
                     }
                     )
@@ -393,8 +390,8 @@ fn first_repetition_end(tokens: &[usize], period: usize) -> usize {
 }
 
 fn repetition_period(
-    tokens: &[usize], 
-    min_repetitions: usize, 
+    tokens: &[usize],
+    min_repetitions: usize,
 ) -> Option<usize> {
     for i in (0..tokens.len()).into_iter().rev() {
         let period = tokens.len() - i;
