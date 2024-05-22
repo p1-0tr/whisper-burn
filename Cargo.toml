@@ -12,16 +12,18 @@ wgpu-backend = ["burn-wgpu"]
 
 [dependencies.burn-tch]
 package = "burn-tch"
-version = "0.13.2"
+git = "https://github.com/p1-0tr/burn.git"
+branch = "ps-dynamic-libwebgpu"
 optional = true
 
 [dependencies.burn-wgpu]
 package = "burn-wgpu"
-version = "0.13.2"
+branch = "ps-dynamic-libwebgpu"
+git = "https://github.com/p1-0tr/burn.git"
 optional = true
 
 [dependencies]
-burn = "0.13.2"
+burn = { git = "https://github.com/p1-0tr/burn.git", branch = "ps-dynamic-libwebgpu" }
 serde = {version = "1.0.171", features = ["std", "derive"]}
 num-traits = "0.2.15"
 hound = "3.5.0"

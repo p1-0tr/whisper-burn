@@ -6,7 +6,7 @@ use strum::IntoEnumIterator;
 
 cfg_if::cfg_if! {
     if #[cfg(feature = "wgpu-backend")] {
-        use burn_wgpu::{Wgpu, WgpuDevice, AutoGraphicsApi};
+        use burn_wgpu::{Dawn, WgpuDevice, AutoGraphicsApi};
     } else if #[cfg(feature = "torch-backend")] {
         use burn_tch::{LibTorch, LibTorchDevice};
     }
@@ -71,7 +71,7 @@ use std::{env, fs, process};
 fn main() {
     cfg_if::cfg_if! {
         if #[cfg(feature = "wgpu-backend")] {
-            type Backend = Wgpu<AutoGraphicsApi, f32, i32>;
+            type Backend = Dawn<AutoGraphicsApi, f32, i32>;
             let device = WgpuDevice::BestAvailable;
         } else if #[cfg(feature = "torch-backend")] {
             type Backend = LibTorch<f32>;
