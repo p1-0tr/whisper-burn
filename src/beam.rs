@@ -9,7 +9,7 @@ pub struct BeamNode<T: Clone> {
 pub fn beam_search<T, F, G>(
     initial_beams: Vec<BeamNode<T>>,
     next: F,
-    is_finished: G, 
+    is_finished: G,
     beam_size: usize,
     max_depth: usize,
 ) -> Vec<T>
@@ -25,9 +25,9 @@ where
                 break;
             }
         }
-        
+
         beams = beam_search_step(beams, next.clone(), is_finished.clone(), beam_size);
-        println!("Depth: {}", i);
+        // println!("Depth: {}", i);
     }
 
     beams.into_iter()
@@ -39,7 +39,7 @@ where
 pub fn beam_search_step<T, F, G>(
     beams: Vec<BeamNode<T>>,
     next: F,
-    is_finished: G, 
+    is_finished: G,
     beam_size: usize,
 ) -> Vec<BeamNode<T>>
 where

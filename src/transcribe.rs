@@ -15,15 +15,15 @@ use burn::{
         self,
         backend::{self, Backend},
         Data, Float, Int, Tensor,
-        ElementConversion, 
-        activation::log_softmax, 
+        ElementConversion,
+        activation::log_softmax,
     },
 };
 
 pub fn waveform_to_text<B: Backend>(
     whisper: &Whisper<B>,
-    bpe: &Gpt2Tokenizer, 
-    lang: Language, 
+    bpe: &Gpt2Tokenizer,
+    lang: Language,
     waveform: Vec<f32>,
     sample_rate: usize,
 ) -> token::Result<(String, Vec<usize>)> {
@@ -65,7 +65,7 @@ pub fn waveform_to_text<B: Backend>(
         //tokens.extend(new_tokens);
 
         text = bpe.decode(&tokens[..], true)?;
-        println!("Chunk {}: {}\n", i, text);
+        // println!("Chunk {}: {}\n", i, text);
 
         //text += &new_text;
     }
