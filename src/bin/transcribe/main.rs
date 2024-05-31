@@ -1,5 +1,5 @@
 use whisper::model::*;
-use whisper::{token::Language};
+use whisper::token::Language;
 use whisper::transcribe::waveform_to_text;
 
 use strum::IntoEnumIterator;
@@ -9,6 +9,8 @@ cfg_if::cfg_if! {
         use burn_wgpu::{Dawn, WgpuDevice, AutoGraphicsApi};
     } else if #[cfg(feature = "torch-backend")] {
         use burn_tch::{LibTorch, LibTorchDevice};
+    } else {
+        use burn::backend::NdArray;
     }
 }
 
@@ -61,8 +63,7 @@ fn load_whisper_model_file<B: Backend>(
     filename: &str,
     device: &B::Device,
 ) -> Result<Whisper<B>, RecorderError> {
-    let model = DefaultRecorder::new()
-        .load(filename.into(), device);
+    let model = DefaultRecorder::new().load(filename.into(), device);
     model.map(|record| config.init(device).load_record(record))
 }
 
@@ -76,6 +77,9 @@ fn main() {
         } else if #[cfg(feature = "torch-backend")] {
             type Backend = LibTorch<f32>;
             let device = LibTorchDevice::Cuda(0);
+        } else {
+            type Backend = NdArray<f32>;
+            let device = Default::default();
         }
     }
 
@@ -94,7 +98,7 @@ fn main() {
 
     let lang_str = &args[3];
     let lang = match Language::iter().find(|lang| lang.as_str() == lang_str) {
-        Some(lang) => lang, 
+        Some(lang) => lang,
         None => {
             eprintln!("Invalid language abbreviation: {}", lang_str);
             process::exit(1);
@@ -129,13 +133,14 @@ fn main() {
     };
 
     println!("Loading model...");
-    let whisper: Whisper<Backend> = match load_whisper_model_file(&whisper_config, model_name, &device) {
-        Ok(whisper_model) => whisper_model,
-        Err(e) => {
-            eprintln!("Failed to load whisper model file: {}", e);
-            process::exit(1);
-        }
-    };
+    let whisper: Whisper<Backend> =
+        match load_whisper_model_file(&whisper_config, model_name, &device) {
+            Ok(whisper_model) => whisper_model,
+            Err(e) => {
+                eprintln!("Failed to load whisper model file: {}", e);
+                process::exit(1);
+            }
+        };
 
     let whisper = whisper.to_device(&device);
 

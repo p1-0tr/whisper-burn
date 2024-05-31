@@ -6,9 +6,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default = ["torch-backend"]
-torch-backend = ["burn-tch"]
+default = []
 wgpu-backend = ["burn-wgpu"]
+torch-backend = ["burn-tch"]
 
 [dependencies.burn-tch]
 package = "burn-tch"
@@ -23,14 +23,16 @@ git = "https://github.com/p1-0tr/burn.git"
 optional = true
 
 [dependencies]
-burn = { git = "https://github.com/p1-0tr/burn.git", branch = "ps-dynamic-libwebgpu" }
-serde = {version = "1.0.171", features = ["std", "derive"]}
+burn = { git = "https://github.com/p1-0tr/burn.git", branch = "ps-dynamic-libwebgpu", features = [
+    "ndarray",
+], no-default-features = true }
+serde = { version = "1.0.171", features = ["std", "derive"] }
 num-traits = "0.2.15"
 hound = "3.5.0"
-tokenizers = {version = "0.13.3", default-features = false, features = [
-  "onig",
-  "http",
-]}
+tokenizers = { version = "0.13.3", default-features = false, features = [
+    "onig",
+    "http",
+] }
 npy = "0.4.0"
 cfg-if = "0.1"
 strum = "0.25.0"
