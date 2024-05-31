@@ -31,16 +31,18 @@ impl Gpt2Tokenizer {
     }
 
     pub fn decode(&self, tokens: &[usize], skip_special: bool) -> Result<String> {
-        self.tokenizer
-            .decode(tokens.iter().map(|t| *t as u32).collect(), skip_special)
+        self.tokenizer.decode(
+            &tokens.iter().map(|t| *t as u32).collect::<Vec<u32>>(),
+            skip_special,
+        )
     }
 
     pub fn is_special(&self, token: usize) -> bool {
         self.tokenizer
-            .decode(vec![token as u32], true)
-            .ok()
-            .map(|s| s.is_empty())
-            .unwrap_or(false)
+                .decode(&vec![token as u32], true)
+                .ok()
+                .map(|s| s.is_empty())
+                .unwrap_or(false)
     }
 
     pub fn vocab_size(&self) -> usize {
@@ -67,7 +69,7 @@ pub enum Language {
     German,
     Spanish,
     Russian,
-    Korean, 
+    Korean,
     French,
     Japanese,
     Portuguese,
@@ -78,7 +80,7 @@ pub enum Language {
     Arabic,
     Swedish,
     Italian,
-    Indonesian, 
+    Indonesian,
     Hindi,
     Finnish,
     Vietnamese,
@@ -140,11 +142,11 @@ pub enum Language {
     Amharic,
     Yiddish,
     Lao,
-    Uzbek, 
+    Uzbek,
     Faroese,
     HaitianCreole,
     Pashto,
-    Turkmen, 
+    Turkmen,
     Nynorsk,
     Maltese,
     Samoan,
@@ -158,7 +160,7 @@ pub enum Language {
     Hausa,
     Bashkir,
     Javanese,
-    Sundanese
+    Sundanese,
 }
 
 impl Language {
